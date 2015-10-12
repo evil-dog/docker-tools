@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-__author__ = 'Christophe Labouisse'
+__author__ = 'Christophe Labouisse and Adrian Goins'
 
-import argparse
-import re
-import os
-
+import argparse, re, os
+from sys import exit
 from docker import Client
 from docker.utils import kwargs_from_env
-
 
 def display_cpu(args):
     detail = c.inspect_container(args.container)
@@ -52,16 +49,26 @@ def display_memory(args):
 def display_network(args):
     detail = c.inspect_container(args.container)
     if bool(detail["State"]["Running"]):
-        ifconfig = c.execute(args.container, "ifconfig eth0")
-        m = re.search(("RX" if args.direction == "in" else "TX") + r" bytes:(\d+)", str(ifconfig))
-        if m:
-            print(m.group(1))
+        cid = c.exec_create(args.container, "cat /proc/net/dev")
+        r = c.exec_start(cid['Id'])
+
+        for line in r.split('\n'):
+            i = line.split()
+            try:
+                if i[0] == 'eth0:':
+                    break
+            except IndexError:
+                # blank line
+                continue
+
+        if not line:
+            print 0
+            exit(1)
+
+        if args.direction == 'in':
+            print i[1]
         else:
-            b = c.execute(args.container, "cat /sys/devices/virtual/net/eth0/statistics/"+("rx" if args.direction == "in" else "tx")+"_bytes").decode()
-            if re.match(r"\s*\d+\s*", b):
-                print(b)
-            else:
-                print(0)
+            print i[9]
     else:
         print(0)
 
