@@ -88,6 +88,8 @@ def display_status(args):
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--version", help="API Version", default='auto')
+
 parser.add_argument("container", help="Container name")
 
 subparsers = parser.add_subparsers(title="Counters", description="Available counters", dest="dataType")
@@ -109,7 +111,8 @@ network_parser.set_defaults(func=display_network)
 status_parser = subparsers.add_parser("status", help="Display the container status")
 status_parser.set_defaults(func=display_status)
 
-c = Client(**(kwargs_from_env()))
-
 args = parser.parse_args()
+
+c = Client(version=args.version, **(kwargs_from_env()))
+
 args.func(args)
