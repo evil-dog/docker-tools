@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import print_function
 
 __author__ = 'xtof'
 
@@ -38,15 +39,15 @@ def register_container(container_id):
     logging.info("Updating %s to ip (%s|%s) -> %s", container_id, container_hostname, container_name, container_ip)
     if not args.dry_run:
         nsupdate = Popen(['nsupdate', '-k', args.key], stdin=PIPE)
-        nsupdate.stdin.write(bytes(zone_update_start_template.format(args.server, args.zone), "UTF-8"))
-        nsupdate.stdin.write(bytes(zone_update_template.format(container_hostname, args.domain, container_ip), "UTF-8"))
+        nsupdate.stdin.write(bytearray(zone_update_start_template.format(args.server, args.zone), "UTF-8"))
+        nsupdate.stdin.write(bytearray(zone_update_template.format(container_hostname, args.domain, container_ip), "UTF-8"))
         if container_name != container_hostname:
-            nsupdate.stdin.write(bytes(zone_update_add_alias_template.format(container_name, args.domain, container_hostname), "UTF-8"))
+            nsupdate.stdin.write(bytearray(zone_update_add_alias_template.format(container_name, args.domain, container_hostname), "UTF-8"))
             if re.search("_", container_name):
                 alternate_name = re.sub('_','-',container_name)
                 logging.info("Adding alternate name %s to  %s", alternate_name, container_name)
-                nsupdate.stdin.write(bytes(zone_update_add_alias_template.format(alternate_name, args.domain, container_hostname), "UTF-8"))
-        nsupdate.stdin.write(bytes("send\n", "UTF-8"))
+                nsupdate.stdin.write(bytearray(zone_update_add_alias_template.format(alternate_name, args.domain, container_hostname), "UTF-8"))
+        nsupdate.stdin.write(bytearray("send\n", "UTF-8"))
         nsupdate.stdin.close()
 
 
@@ -72,13 +73,13 @@ def remove_container(container_id):
 
     if not args.dry_run:
         nsupdate = Popen(['nsupdate', '-k', args.key], stdin=PIPE)
-        nsupdate.stdin.write(bytes(zone_update_start_template.format(args.server, args.zone), "UTF-8"))
+        nsupdate.stdin.write(bytearray(zone_update_start_template.format(args.server, args.zone), "UTF-8"))
 
         for record in record_to_delete:
             logging.info("Removing record for %s", record)
-            nsupdate.stdin.write(bytes(zone_update_delete_record_template.format(record, args.domain), "UTF-8"))
+            nsupdate.stdin.write(bytearray(zone_update_delete_record_template.format(record, args.domain), "UTF-8"))
 
-        nsupdate.stdin.write(bytes("send\n", "UTF-8"))
+        nsupdate.stdin.write(bytearray("send\n", "UTF-8"))
         nsupdate.stdin.close()
 
 
