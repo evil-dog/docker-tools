@@ -1,0 +1,11 @@
+# Docker Dynamic DNS updater configuration file.
+#NOTE: Systemd does not do variable expansion in EnvironmentFile statements.
+#      So you can't have variables containing variables.
+
+# Key used to update the DNS
+NSUPDATE_KEY="/etc/bind/Kcontainers.+157+42654.key"
+
+# Domain to update
+NSUPDATE_DOMAIN="containers"
+
+DOCKER_DDNS_OPTS="--catchup"

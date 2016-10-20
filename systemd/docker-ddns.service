@@ -1,0 +1,16 @@
+[Unit]
+Description=Docker DDNS Daemon
+After=docker.service
+
+[Service]
+EnvironmentFile=/etc/default/docker-ddns
+Restart=on-failure
+RestartSec=5
+ExecStart=/usr/local/bin/dockerDDNS.py \
+	--key $NSUPDATE_KEY \
+	--domain $NSUPDATE_DOMAIN \
+	$DOCKER_DDNS_OPTS
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
