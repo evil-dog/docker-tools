@@ -118,28 +118,15 @@ if args.catchup:
     for container in containers:
         register_container(container["Id"])
 
+events = c.events(decode=True)
 
-# TODO use docker-py streaming API
-events_pipe = Popen(['docker', 'events'], stdout=PIPE)
+for event in events:
+    logging.debug("Event message: %s", repr(event))
+    if event['Action'] == "start":
+      register_container(event['id'])
+    elif event['Action'] == "die":
+      remove_container(event['id'])
 
-while True:
-    line = events_pipe.stdout.readline()
-    if line != '':
-        text_line = line.decode().rstrip()
-        logging.debug("Read line %s", text_line)
-        m = re.search(r"\s+([0-9a-f]{64}):.*\s+([a-z]+)\s*$", text_line)
-        if m:
-            event = m.group(2)
-            container_id = m.group(1)
-            logging.debug("Got event %s for container %s", event, container_id)
-
-            if event == "start":
-                register_container(container_id)
-            elif event == "destroy":
-                remove_container(container_id)
-    else:
-        print("Done return code: ", events_pipe.returncode)
-        break
 
 # 2014-11-28T15:32:04.000000000+01:00 a3d66b00acc9adbdbdbc91cc664d2d94b6a07cc4295c5cf54fcc595e2aa92a43: (from mongo:latest) restart
 # 2015-03-05T08:36:14.000000000+01:00 eb75c1a5ad836d008b0fd66bf6b1ea353510175e8caa619e59d9851029b1ceca: (from ggtools/zabbix-server:latest) exec_start: ifconfig eth0
